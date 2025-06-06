@@ -32,12 +32,29 @@ function sendEmailToNominee(e) {
         var reasonQuestionTitle = "Reason for nomination";
         var organizationName = "McKinnon Secondary College";
 
-        var nomineeEmail = "";
+        var nomineeUsernamesRaw = "";
         if (formResponse[nomineeEmailQuestionTitle] && formResponse[nomineeEmailQuestionTitle][0]) {
-            nomineeEmail = formResponse[nomineeEmailQuestionTitle][0].trim();
+            nomineeUsernamesRaw = formResponse[nomineeEmailQuestionTitle][0].trim();
         } else {
             console.error("Error: The question '" + nomineeEmailQuestionTitle + "' was not found in the form response or has no value. Please check your form.");
+            return;
         }
+
+        var nomineeUsernames = nomineeUsernamesRaw.split(/[,\s]+/).filter(function (username) {
+            return username.length > 0;
+        });
+
+        if (nomineeUsernames.length === 0) {
+            console.error("No nominee usernames found in the input. Aborting.");
+            return;
+        }
+
+        var potentialNomineeEmails = nomineeUsernames.map(function (username) {
+            if (username.indexOf('@') === -1) {
+                return username + "@mckinnonsc.vic.edu.au";
+            }
+            return username;
+        });
 
         var reasonForNomination = "No specific reason was provided, but your work is appreciated!";
         if (formResponse[reasonQuestionTitle] && formResponse[reasonQuestionTitle][0]) {
@@ -46,24 +63,42 @@ function sendEmailToNominee(e) {
             console.log("Info: The question '" + reasonQuestionTitle + "' was not found or was empty. Using default reason.");
         }
 
-        var nomineeFirstName = "";
-        if (nomineeEmail && nomineeEmail !== "") {
-            try {
-                console.log("Attempting to retrieve nominee profile for: " + nomineeEmail);
-                var nomineeUser = AdminDirectory.Users.get(nomineeEmail);
-                if (nomineeUser && nomineeUser.name && nomineeUser.name.givenName) {
-                    nomineeFirstName = nomineeUser.name.givenName;
-                    console.log("Nominee first name found in directory: " + nomineeFirstName);
-                } else if (nomineeUser) {
-                    console.log("Nominee user found in directory, but givenName is missing. User object: " + JSON.stringify(nomineeUser.name));
-                } else {
-                    console.log("Nominee user not found in directory for: " + nomineeEmail);
+        var validNominees = [];
+        if (potentialNomineeEmails && potentialNomineeEmails.length > 0) {
+            potentialNomineeEmails.forEach(function (email) {
+                try {
+                    console.log("Attempting to validate nominee: " + email);
+                    var nomineeUser = AdminDirectory.Users.get(email);
+                    if (nomineeUser && nomineeUser.name && nomineeUser.name.givenName) {
+                        validNominees.push({ email: email, firstName: nomineeUser.name.givenName });
+                        console.log("Successfully validated nominee: " + nomineeUser.name.givenName);
+                    } else {
+                        console.log("Nominee user found for " + email + ", but givenName is missing. Excluding. User object: " + JSON.stringify(nomineeUser.name));
+                    }
+                } catch (err) {
+                    console.log("Could not retrieve nominee's profile for " + email + ". This user will be excluded. Error: " + err.message);
                 }
-            } catch (err) {
-                console.log("Could not retrieve nominee's profile or first name from directory for " + nomineeEmail + ". Error: " + err.message);
-            }
+            });
+        }
+
+        if (validNominees.length === 0) {
+            console.error("No valid nominees found after checking the directory. No email will be sent.");
+            return;
+        }
+
+        var nomineeEmails = validNominees.map(function (nominee) { return nominee.email; });
+        var nomineeFirstNames = validNominees.map(function (nominee) { return nominee.firstName; });
+
+        var nomineeGreeting;
+        if (nomineeFirstNames.length > 1) {
+            var allButLast = nomineeFirstNames.slice(0, -1);
+            var last = nomineeFirstNames.slice(-1)[0];
+            nomineeGreeting = allButLast.join(', ') + ' & ' + last;
+        } else if (nomineeFirstNames.length === 1) {
+            nomineeGreeting = nomineeFirstNames[0];
         } else {
-            console.log("Nominee email is empty, skipping directory lookup for first name.");
+            // This case should not be reached due to the check for validNominees.length === 0, but as a fallback.
+            nomineeGreeting = 'there';
         }
 
         var nominatorEmail = "an anonymous nominator";
@@ -101,7 +136,7 @@ function sendEmailToNominee(e) {
             console.log("Could not retrieve nominator details for " + nominatorEmail + ". Error: " + err.message);
         }
 
-        if (!nomineeEmail) {
+        if (nomineeEmails.length === 0) {
             console.error("Nominee email not provided. Question title used: '" + nomineeEmailQuestionTitle + "'.");
             return;
         }
@@ -110,7 +145,8 @@ function sendEmailToNominee(e) {
         var subject = "🥳 JoyBot Nomination! 🥳";
         var htmlTemplate = HtmlService.createTemplateFromFile("template.html");
 
-        htmlTemplate.nomineeFirstName = nomineeFirstName;
+        htmlTemplate.nomineeFirstName = nomineeGreeting;
+        htmlTemplate.nominees = nomineeFirstNames;
         htmlTemplate.nominatorEmail = nominatorEmail;
         htmlTemplate.nominatorDisplayName = nominatorDisplayName;
         htmlTemplate.nominatorPhotoUrl = nominatorPhotoUrl;
@@ -121,13 +157,13 @@ function sendEmailToNominee(e) {
 
         MailApp.sendEmail({
             name: name,
-            to: nomineeEmail,
+            to: nomineeEmails.join(','),
             subject: subject,
             htmlBody: htmlBody,
             noReply: true
         });
 
-        console.log("Nomination email sent to: " + nomineeEmail);
+        console.log("Nomination email sent to: " + nomineeEmails.join(','));
 
     } catch (error) {
         console.error("Error in sendEmailToNominee: " + error.toString());
@@ -142,9 +178,9 @@ function sendEmailToNominee(e) {
 function testSendEmail() {
     var mockEvent = {
         namedValues: {
-            "Email of nominee": ["sam.neal@mckinnonsc.vic.edu.au"],
-            "Name of nominee": ["Sam Neal"],
-            "Reason for nomination": ["Being wonderfully supportive and helpful."]
+            "Email of nominee": ["sam.neal,jarryd.steadman,blake.seufert"],
+            "Name of nominee": ["Sam Neal, Jarryd Steadman, Blake Seufert"],
+            "Reason for nomination": ["For being a great team and helping out with the recent project."]
         },
         response: {
             getRespondentEmail: function () {
