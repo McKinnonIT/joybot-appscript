@@ -68,9 +68,13 @@ function sendEmailToNominee(e) {
             potentialNomineeEmails.forEach(function (email) {
                 try {
                     console.log("Attempting to validate nominee: " + email);
-                    var nomineeUser = AdminDirectory.Users.get(email);
+                    var nomineeUser = AdminDirectory.Users.get(email, { viewType: 'domain_public' });
                     if (nomineeUser && nomineeUser.name && nomineeUser.name.givenName) {
-                        validNominees.push({ email: email, firstName: nomineeUser.name.givenName });
+                        validNominees.push({
+                            email: email,
+                            firstName: nomineeUser.name.givenName,
+                            photoUrl: nomineeUser.thumbnailPhotoUrl || null
+                        });
                         console.log("Successfully validated nominee: " + nomineeUser.name.givenName);
                     } else {
                         console.log("Nominee user found for " + email + ", but givenName is missing. Excluding. User object: " + JSON.stringify(nomineeUser.name));
@@ -146,7 +150,7 @@ function sendEmailToNominee(e) {
         var htmlTemplate = HtmlService.createTemplateFromFile("template.html");
 
         htmlTemplate.nomineeFirstName = nomineeGreeting;
-        htmlTemplate.nominees = nomineeFirstNames;
+        htmlTemplate.nominees = validNominees;
         htmlTemplate.nominatorEmail = nominatorEmail;
         htmlTemplate.nominatorDisplayName = nominatorDisplayName;
         htmlTemplate.nominatorPhotoUrl = nominatorPhotoUrl;

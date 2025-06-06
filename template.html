@@ -173,7 +173,7 @@
         <p>Wonderful news! You have received a JoyBot nomination for bringing joy to someone's day.</p>
     </div>
 
-    <div style="margin-top: 25px;">
+    <div>
         <div><strong>Nominated by:</strong></div>
         <div style="margin-top: 5px;">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0">
@@ -202,15 +202,33 @@
     </div>
 
     <? if (nominees && nominees.length > 1) { ?>
-    <div class="reason-text" style="margin-top: 15px;">
-        <strong>This nomination includes the following people:</strong>
-        <ul style="margin-top: 5px; padding-left: 20px;">
-            <? for (var i = 0; i < nominees.length; i++) { ?>
-            <li style="margin-bottom: 5px;">
-                <?= nominees[i] ?>
-            </li>
-            <? } ?>
-        </ul>
+    <div style="margin-top: 15px; margin-bottom: 25px;">
+        <span class="reason-label">This nomination includes the following people:</span>
+        <div style="margin-top: 5px;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <? for (var i = 0; i < nominees.length; i++) { ?>
+                <? var nominee = nominees[i]; ?>
+                <tr>
+                    <td style="padding-bottom: 10px;">
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <? if (nominee.photoUrl) { ?>
+                                <td style="padding-right: 10px; vertical-align: middle;">
+                                    <img src="<?= nominee.photoUrl ?>" alt=""
+                                        style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid #e0e0e0; display: block;">
+                                </td>
+                                <? } ?>
+                                <td
+                                    style="vertical-align: middle; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 13px; color: #444444;">
+                                    <?= nominee.firstName ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <? } ?>
+            </table>
+        </div>
     </div>
     <? } ?>
 
