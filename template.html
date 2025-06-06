@@ -173,19 +173,6 @@
         <p>Wonderful news! You have received a JoyBot nomination for bringing joy to someone's day.</p>
     </div>
 
-    <? if (nominees && nominees.length > 1) { ?>
-    <div class="nomination-details-wrapper">
-        <p>This nomination includes the following people:</p>
-        <ul style="margin-top: 5px; padding-left: 20px;">
-            <? for (var i = 0; i < nominees.length; i++) { ?>
-            <li style="margin-bottom: 5px;">
-                <?= nominees[i] ?>
-            </li>
-            <? } ?>
-        </ul>
-    </div>
-    <? } ?>
-
     <div style="margin-top: 25px;">
         <div><strong>Nominated by:</strong></div>
         <div style="margin-top: 5px;">
@@ -213,6 +200,19 @@
             <?= reasonForNomination ?>
         </div>
     </div>
+
+    <? if (nominees && nominees.length > 1) { ?>
+    <div class="reason-text" style="margin-top: 15px;">
+        <strong>This nomination includes the following people:</strong>
+        <ul style="margin-top: 5px; padding-left: 20px;">
+            <? for (var i = 0; i < nominees.length; i++) { ?>
+            <li style="margin-bottom: 5px;">
+                <?= nominees[i] ?>
+            </li>
+            <? } ?>
+        </ul>
+    </div>
+    <? } ?>
 
     <strong>Congratulations on this wonderful recognition!</strong>
 

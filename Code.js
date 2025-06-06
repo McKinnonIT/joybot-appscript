@@ -28,7 +28,7 @@ function sendEmailToNominee(e) {
             return;
         }
 
-        var nomineeEmailQuestionTitle = "Email of nominee";
+        var nomineeEmailQuestionTitle = "Nominee username(s)";
         var reasonQuestionTitle = "Reason for nomination";
         var organizationName = "McKinnon Secondary College";
 
@@ -178,13 +178,13 @@ function sendEmailToNominee(e) {
 function testSendEmail() {
     var mockEvent = {
         namedValues: {
-            "Email of nominee": ["sam.neal,jarryd.steadman,blake.seufert"],
-            "Name of nominee": ["Sam Neal, Jarryd Steadman, Blake Seufert"],
+            "Nominee username(s)": ["sam.neal,jarryd.steadman"],
+            "Name of nominee": ["Sam Neal"],
             "Reason for nomination": ["For being a great team and helping out with the recent project."]
         },
         response: {
             getRespondentEmail: function () {
-                return "jarryd.steadman@mckinnonsc.vic.edu.au";
+                return "sam.neal@mckinnonsc.vic.edu.au";
             }
         }
     };
