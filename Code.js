@@ -183,7 +183,6 @@ function testSendEmail() {
     var mockEvent = {
         namedValues: {
             "Nominee username(s)": ["sam.neal,jarryd.steadman"],
-            "Name of nominee": ["Sam Neal"],
             "Reason for nomination": ["For being a great team and helping out with the recent project."]
         },
         response: {
